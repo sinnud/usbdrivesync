@@ -1,0 +1,34 @@
+# Database and configuration
+usb_backup.db
+config.json
+
+# Logs
+logs/
+*.log
+
+# Plans
+plans/
+
+# Staging directory
+/tmp/usb_sync_staging/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

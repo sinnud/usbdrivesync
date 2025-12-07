@@ -1,0 +1,21 @@
+{
+  "master": {
+    "uuid": "XXXXXXXXXXXXXXXX",
+    "serial": "WD-XXXXXXXXXXXXX",
+    "label": "MASTER_DRIVE_2024",
+    "size": 2000398934016
+  },
+  "backup": {
+    "uuid": "YYYYYYYYYYYYYYYY",
+    "serial": "WD-YYYYYYYYYYYYY",
+    "label": "BACKUP_DRIVE_2024",
+    "size": 2000398934016
+  },
+  "settings": {
+    "min_usb_speed_mbps": 5000,
+    "warn_on_usb2": true,
+    "allow_usb2_override": true,
+    "staging_dir": "/tmp/usb_sync_staging",
+    "exclude_hidden": true
+  }
+}
