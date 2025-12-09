@@ -13,7 +13,7 @@ def get_block_devices() -> List[Dict]:
     """Get list of all block devices with details"""
     try:
         result = subprocess.run(
-            ['lsblk', '-o', 'NAME,SIZE,FSTYPE,UUID,LABEL,MOUNTPOINT', '-J'],
+            ['lsblk', '-o', 'NAME,SIZE,FSTYPE,UUID,LABEL,MOUNTPOINT,RM,TRAN', '-J'],
             capture_output=True, text=True, check=True
         )
         import json
@@ -246,16 +246,36 @@ def is_mounted(device_path: str) -> bool:
 
 
 def get_ntfs_drives() -> List[Dict]:
-    """Get list of NTFS formatted drives"""
+    """Get list of NTFS formatted USB/removable drives (excludes internal drives)"""
     devices = get_block_devices()
     ntfs_drives = []
     
-    def extract_ntfs(dev, parent_name=''):
+    def is_usb_or_removable(dev) -> bool:
+        """Check if device is USB or removable (not internal SATA/NVMe)"""
+        # Check transport type - USB drives have tran='usb'
+        tran = dev.get('tran', '').lower()
+        if tran == 'usb':
+            return True
+        
+        # Check removable flag - USB drives typically have rm=True
+        if dev.get('rm', False):
+            return True
+        
+        # Exclude internal drives (sata, nvme, etc.)
+        if tran in ['sata', 'nvme', 'ata', 'scsi']:
+            return False
+        
+        return False
+    
+    def extract_ntfs(dev, parent_dev=None, parent_name=''):
         if isinstance(dev, dict):
             name = dev.get('name', '')
             full_name = f"{parent_name}{name}" if parent_name else name
             
-            if dev.get('fstype') == 'ntfs':
+            # Use parent device info if this is a partition
+            check_dev = parent_dev if parent_dev else dev
+            
+            if dev.get('fstype') == 'ntfs' and is_usb_or_removable(check_dev):
                 ntfs_drives.append({
                     'name': full_name,
                     'size': dev.get('size', ''),
@@ -264,10 +284,10 @@ def get_ntfs_drives() -> List[Dict]:
                     'mountpoint': dev.get('mountpoint', '')
                 })
             
-            # Check children
+            # Check children (partitions inherit parent device properties)
             children = dev.get('children', [])
             for child in children:
-                extract_ntfs(child, full_name)
+                extract_ntfs(child, dev, full_name)
     
     for device in devices:
         extract_ntfs(device)
