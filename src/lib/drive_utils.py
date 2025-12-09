@@ -245,6 +245,66 @@ def is_mounted(device_path: str) -> bool:
         return False
 
 
+def get_usb_storage_devices() -> List[Dict]:
+    """Get list of all USB storage devices (mounted or not) with speed info"""
+    devices = get_block_devices()
+    usb_devices = []
+    
+    def is_usb_or_removable(dev) -> bool:
+        """Check if device is USB or removable (not internal SATA/NVMe)"""
+        tran = dev.get('tran', '').lower()
+        if tran == 'usb':
+            return True
+        if dev.get('rm', False):
+            return True
+        if tran in ['sata', 'nvme', 'ata', 'scsi']:
+            return False
+        return False
+    
+    def extract_usb(dev, parent_dev=None, parent_name='', level=0):
+        if isinstance(dev, dict):
+            name = dev.get('name', '')
+            full_name = f"{parent_name}{name}" if parent_name else name
+            check_dev = parent_dev if parent_dev else dev
+            
+            # Add device if it's USB (parent level) or partition of USB device
+            if level == 0 and is_usb_or_removable(dev):
+                # Get USB speed for this device
+                speed = get_usb_speed(full_name)
+                
+                # This is a USB device
+                usb_devices.append({
+                    'name': full_name,
+                    'size': dev.get('size', ''),
+                    'fstype': dev.get('fstype', ''),
+                    'uuid': dev.get('uuid', ''),
+                    'label': dev.get('label', ''),
+                    'mountpoint': dev.get('mountpoint', ''),
+                    'tran': dev.get('tran', ''),
+                    'rm': dev.get('rm', False),
+                    'speed': speed,
+                    'usb_version': get_usb_version(speed) if speed else 'Unknown',
+                    'children': []
+                })
+                # Check children (partitions)
+                children = dev.get('children', [])
+                for child in children:
+                    child_info = {
+                        'name': child.get('name', ''),
+                        'size': child.get('size', ''),
+                        'fstype': child.get('fstype', ''),
+                        'uuid': child.get('uuid', ''),
+                        'label': child.get('label', ''),
+                        'mountpoint': child.get('mountpoint', '')
+                    }
+                    usb_devices[-1]['children'].append(child_info)
+    
+    for device in devices:
+        extract_usb(device, level=0)
+    
+    return usb_devices
+
+
 def get_ntfs_drives() -> List[Dict]:
     """Get list of NTFS formatted USB/removable drives (excludes internal drives)"""
     devices = get_block_devices()

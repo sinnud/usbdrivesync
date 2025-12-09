@@ -13,7 +13,7 @@ import argparse
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'lib'))
 
 from drive_utils import (
-    get_ntfs_drives, get_device_uuid, get_device_serial,
+    get_ntfs_drives, get_usb_storage_devices, get_device_uuid, get_device_serial,
     get_device_label, get_device_size, format_size
 )
 from database import Database
@@ -29,11 +29,54 @@ def scan_available_drives():
     drives = get_ntfs_drives()
     
     if not drives:
-        print("❌ No NTFS drives found")
-        print("   Please ensure:")
-        print("   1. USB drive is connected")
-        print("   2. Drive is formatted as NTFS")
-        print("   3. Drive is mounted (or mount it manually)")
+        print("❌ No mounted NTFS drives found")
+        
+        # Check if any USB storage devices are connected
+        usb_devices = get_usb_storage_devices()
+        if usb_devices:
+            print("\n⚠️  USB storage device(s) detected but not ready:")
+            for usb in usb_devices:
+                speed_info = ""
+                if usb.get('speed'):
+                    speed = usb['speed']
+                    version = usb.get('usb_version', 'Unknown')
+                    if speed < 5000:
+                        speed_info = f" ⚠️  USB {version} ({speed} Mbps) - TOO SLOW!"
+                    else:
+                        speed_info = f" ✅ USB {version} ({speed} Mbps)"
+                else:
+                    speed_info = " ⚠️  USB speed unknown"
+                
+                print(f"\n   Device: /dev/{usb['name']} ({usb['size']}){speed_info}")
+                
+                if usb['children']:
+                    for child in usb['children']:
+                        fstype = child['fstype'] or 'unknown'
+                        mounted = child['mountpoint'] or 'NOT MOUNTED'
+                        print(f"   └─ /dev/{child['name']}: {fstype}, {mounted}")
+                else:
+                    print(f"   └─ No partitions found (may need partitioning)")
+            
+            # Check if any device is too slow
+            slow_devices = [u for u in usb_devices if u.get('speed') and u['speed'] < 5000]
+            if slow_devices:
+                print("\n   ⚡ WARNING: USB drive is on USB 2.0 port!")
+                print("   Please plug into a BLUE USB 3.0 port for better performance.")
+                print("   Expected transfer time (100GB):")
+                for u in slow_devices:
+                    from drive_utils import estimate_transfer_time
+                    print(f"     USB 2.0: ~{estimate_transfer_time(u['speed'], 100)} hours")
+                    print(f"     USB 3.0: ~{estimate_transfer_time(5000, 100)} hours")
+            
+            print("\n   Please ensure:")
+            print("   1. Drive is formatted as NTFS")
+            print("   2. Drive is mounted (mount it with: sudo mount /dev/sdX1 /mnt/usb)")
+        else:
+            print("\n   Please ensure:")
+            print("   1. USB drive is connected")
+            print("   2. Drive is formatted as NTFS")
+            print("   3. Drive is mounted (or mount it manually)")
+        
         return []
     
     print(f"\n✅ Found {len(drives)} NTFS drive(s):\n")
