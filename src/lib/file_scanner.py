@@ -8,6 +8,36 @@ import os
 from typing import List, Tuple, Optional
 
 
+# NTFS/Windows system folders and files to exclude
+SYSTEM_EXCLUDES = [
+    'System Volume Information',
+    '$RECYCLE.BIN',
+    '$Recycle.Bin',
+    'RECYCLER',
+    '$WINDOWS.~BT',
+    '$WinREAgent',
+    'hiberfil.sys',
+    'pagefile.sys',
+    'swapfile.sys',
+]
+
+
+def build_find_excludes(exclude_hidden: bool = True, exclude_system: bool = True) -> List[str]:
+    """Build exclusion arguments for find command"""
+    excludes = []
+    
+    # Exclude hidden files/folders
+    if exclude_hidden:
+        excludes.extend(['-not', '-path', '*/.*'])
+    
+    # Exclude system folders/files
+    if exclude_system:
+        for item in SYSTEM_EXCLUDES:
+            excludes.extend(['-not', '-path', f'*/{item}', '-not', '-path', f'*/{item}/*'])
+    
+    return excludes
+
+
 def scan_drive(mount_point: str, exclude_hidden: bool = True) -> List[Tuple[str, int, float]]:
     """
     Scan drive using find command for maximum speed.
@@ -23,9 +53,8 @@ def scan_drive(mount_point: str, exclude_hidden: bool = True) -> List[Tuple[str,
     # Build find command
     cmd = ['find', mount_point, '-mount', '-type', 'f']
     
-    # Exclude hidden files if requested
-    if exclude_hidden:
-        cmd.extend(['-not', '-path', '*/.*'])
+    # Add exclusions
+    cmd.extend(build_find_excludes(exclude_hidden, exclude_system=True))
     
     # Output format: path|size|mtime
     cmd.extend(['-printf', '%p|%s|%T@\\n'])
@@ -102,8 +131,8 @@ def scan_drive_incremental(mount_point: str, batch_size: int = 10000,
     # Build find command
     cmd = ['find', mount_point, '-mount', '-type', 'f']
     
-    if exclude_hidden:
-        cmd.extend(['-not', '-path', '*/.*'])
+    # Add exclusions
+    cmd.extend(build_find_excludes(exclude_hidden, exclude_system=True))
     
     cmd.extend(['-printf', '%p|%s|%T@\\n'])
     
