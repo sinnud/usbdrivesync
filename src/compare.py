@@ -187,13 +187,13 @@ def compare_drives(show_only: bool = False):
     plan_filename = f"sync_plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     plan_path = os.path.join(PLANS_DIR, plan_filename)
     
-    with open(plan_path, 'w') as f:
-        json.dump(sync_plan, f, indent=2)
+    with open(plan_path, 'w', encoding='utf-8') as f:
+        json.dump(sync_plan, f, indent=2, ensure_ascii=False)
     
     # Also save as latest
     latest_path = os.path.join(PLANS_DIR, 'sync_plan_latest.json')
-    with open(latest_path, 'w') as f:
-        json.dump(sync_plan, f, indent=2)
+    with open(latest_path, 'w', encoding='utf-8') as f:
+        json.dump(sync_plan, f, indent=2, ensure_ascii=False)
     
     print("\n" + "=" * 60)
     print("Sync Plan Saved")
