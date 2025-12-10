@@ -53,7 +53,7 @@ class Database:
                 scan_timestamp TEXT NOT NULL,
                 is_deleted INTEGER DEFAULT 0,
                 FOREIGN KEY (drive_id) REFERENCES drives(drive_id),
-                UNIQUE(drive_id, filepath, scan_timestamp)
+                UNIQUE(drive_id, filepath)
             )
         """)
         

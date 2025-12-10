@@ -193,9 +193,9 @@ def scan_drive_command(mount_point: str, role: str):
     stats = db.get_file_stats(drive_id)
     
     print("\n" + "=" * 60)
-    print("Drive Statistics")
+    print(f"Drive Statistics - {role.upper()}")
     print("=" * 60)
-    print(f"Total files in DB: {stats.get('total_files', 0):,}")
+    print(f"Total files on this drive: {stats.get('total_files', 0):,}")
     print(f"Active files: {stats.get('total_files', 0) - stats.get('deleted_files', 0):,}")
     print(f"Deleted files: {stats.get('deleted_files', 0):,}")
     print(f"Total size: {format_size(stats.get('total_size', 0))}")
