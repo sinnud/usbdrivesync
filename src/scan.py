@@ -180,8 +180,14 @@ def scan_drive_command(mount_point: str, role: str):
     else:
         print(f"   No deleted files")
     
-    # Update drive scan timestamp
+    # Update drive scan timestamp and size
     db.update_drive_scan_time(drive_id)
+    
+    # Update drive size in database
+    cursor = db.conn.cursor()
+    cursor.execute("UPDATE drives SET drive_size = ? WHERE drive_id = ?", 
+                   (total_size, drive_id))
+    db.conn.commit()
     
     # Get statistics
     stats = db.get_file_stats(drive_id)
