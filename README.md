@@ -383,10 +383,27 @@ cat /sys/block/$device/device/../speed
 ```
 
 ### Permission issues
+
+**⚠️ CRITICAL: Always mount with user permissions!**
+
+If you get "Permission denied" errors when syncing, it means the drive was mounted without proper permissions.
+
 ```bash
-# Mount with specific user
+# CORRECT way - mount with your user as owner:
 sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdX1 /mnt/usb
+
+# Check current mount options:
+mount | grep /mnt/usb
+
+# If mounted incorrectly, remount:
+sudo umount /mnt/usb
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdX1 /mnt/usb
+
+# Verify you can write:
+touch /mnt/usb/test.txt && rm /mnt/usb/test.txt
 ```
+
+**Why this is needed:** The sync script copies files from `/tmp/usb_staging` (owned by your user) to the USB drive. If the USB drive is mounted as root-only, the copy will fail with permission errors.
 
 ---
 

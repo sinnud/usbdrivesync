@@ -2,6 +2,22 @@
 
 This guide gets you up and running quickly.
 
+## ⚠️ IMPORTANT: Mount with Proper Permissions
+
+**Always mount drives with user permissions** to avoid "Permission denied" errors when copying files:
+
+```bash
+# CORRECT way to mount (includes uid/gid):
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+
+# WRONG way (will cause permission errors):
+sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb  # ❌ Don't use this!
+```
+
+The `-o uid=$(id -u),gid=$(id -g)` options ensure your user owns the files and can write to the drive.
+
+---
+
 ## Prerequisites Check
 
 ```bash
@@ -31,9 +47,9 @@ rsync -avH --progress /mnt/d/ /mnt/e/
 cd ~/usbdrivesync
 
 # Plug in MASTER drive to USB 3.0 (blue) port
-# Mount it (example - adjust device name)
+# Mount it with user permissions (example - adjust device name)
 sudo mkdir -p /mnt/usb
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Identify drives and create config
 python3 src/setup.py --scan-drives
@@ -43,8 +59,8 @@ python3 src/scan.py --drive /mnt/usb --role master
 
 # Unplug master, plug backup, mount
 sudo umount /mnt/usb
-# Plug backup drive
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb
+# Plug backup drive with user permissions
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Scan backup drive
 python3 src/scan.py --drive /mnt/usb --role backup
@@ -61,8 +77,8 @@ python3 src/scan.py --drive /mnt/usb --role backup
 ### Step 1: Scan Master
 
 ```bash
-# Plug master drive into USB 3.0 port
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb
+# Plug master drive into USB 3.0 port with user permissions
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Scan
 python3 src/scan.py --drive /mnt/usb --role master
@@ -83,8 +99,8 @@ python3 src/compare.py
 ### Step 3: Stage Deltas
 
 ```bash
-# Plug master drive back in
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb
+# Plug master drive back in with user permissions
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Stage files to laptop
 python3 src/sync.py --stage-deltas --drive /mnt/usb
@@ -96,8 +112,8 @@ sudo umount /mnt/usb
 ### Step 4: Apply to Backup
 
 ```bash
-# Plug backup drive
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb
+# Plug backup drive with user permissions
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Apply changes
 python3 src/sync.py --apply-staged --drive /mnt/usb

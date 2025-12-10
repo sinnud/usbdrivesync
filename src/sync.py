@@ -156,7 +156,7 @@ def stage_deltas(mount_point: str, plan_path: str = None, dry_run: bool = False)
     print("\n📌 Next steps:")
     print("   1. Disconnect MASTER drive")
     print("   2. Connect BACKUP drive")
-    print("   3. Run: python3 src/sync.py --apply-staged")
+    print("   3. Run: python3 src/sync.py --apply-staged --drive /media/usbhd")
 
 
 def apply_staged(mount_point: str, plan_path: str = None, dry_run: bool = False):
