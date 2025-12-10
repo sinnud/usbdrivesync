@@ -107,12 +107,19 @@ def scan_drive_command(mount_point: str, role: str):
     db = Database(DB_FILE)
     db.connect()
     
-    # Get drive ID from database
+    # Get drive ID from database, or register if not found
     drive_info = db.get_drive(role)
     if not drive_info:
-        print(f"❌ Drive {role} not found in database")
-        db.close()
-        sys.exit(1)
+        print(f"📝 Registering {role} drive in database...")
+        # Register drive with UUID as drive_id
+        db.add_drive(
+            drive_id=expected_uuid,
+            role=role,
+            serial=config[role].get('serial', 'unknown'),
+            label=expected_label,
+            size=None  # Will be updated during scan
+        )
+        drive_info = db.get_drive(role)
     
     drive_id = drive_info['drive_id']
     
