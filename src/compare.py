@@ -203,9 +203,9 @@ def compare_drives(show_only: bool = False):
     
     print("\n✅ Next steps:")
     print("   1. Connect MASTER drive")
-    print("   2. Run: python3 src/sync.py --stage-deltas")
+    print("   2. Run: python3 src/sync.py --stage-deltas --drive /media/usbhd")
     print("   3. Disconnect master, connect BACKUP drive")
-    print("   4. Run: python3 src/sync.py --apply-staged")
+    print("   4. Run: python3 src/sync.py --apply-staged --drive /media/usbhd")
 
 
 def main():
