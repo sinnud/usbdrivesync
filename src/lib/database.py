@@ -119,7 +119,7 @@ class Database:
         self.conn.commit()
         
     def add_files_bulk(self, files: List[Tuple], drive_id: str):
-        """Bulk insert files (filepath, size, mtime)"""
+        """Bulk insert/update files (filepath, size, mtime)"""
         cursor = self.conn.cursor()
         scan_timestamp = datetime.now().isoformat()
         
@@ -127,7 +127,7 @@ class Database:
                 for filepath, size, mtime in files]
         
         cursor.executemany("""
-            INSERT INTO files (drive_id, filepath, size, mtime, scan_timestamp, is_deleted)
+            INSERT OR REPLACE INTO files (drive_id, filepath, size, mtime, scan_timestamp, is_deleted)
             VALUES (?, ?, ?, ?, ?, 0)
         """, data)
         self.conn.commit()
