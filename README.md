@@ -1,6 +1,6 @@
 # USB Drive Sync & Backup Tool
 
-A Python-based tool for managing synchronized backups between two NTFS USB drives (2-3TB each) on Debian Linux, with master-backup versioning strategy.
+A Python-based tool for managing synchronized backups between two USB drives (2-3TB each) on Debian Linux, with master-backup versioning strategy. Supports NTFS and exFAT filesystems.
 
 ## Features
 
@@ -22,14 +22,14 @@ A Python-based tool for managing synchronized backups between two NTFS USB drive
 
 ### Hardware
 - Debian Linux laptop with at least one USB 3.0 port (blue port)
-- 2× USB drives (2-3TB each, NTFS formatted)
+- 2× USB drives (2-3TB each, NTFS or exFAT formatted)
 - ~200GB+ free space on laptop for staging delta files
 
 ### Software (Debian)
 ```bash
 # System packages
 sudo apt-get update
-sudo apt-get install -y ntfs-3g rsync python3 python3-pip
+sudo apt-get install -y ntfs-3g exfat-fuse exfat-utils rsync python3 python3-pip
 
 # Python 3.8+ (usually pre-installed)
 python3 --version
@@ -131,11 +131,32 @@ If you prefer not to use WSL:
 # Create mount point
 sudo mkdir -p /mnt/usb
 
+# Check filesystem type
+lsblk -f | grep sdX1
+
 # Mount NTFS drive (replace sdX1 with your device)
-sudo mount -t ntfs-3g -o big_writes,noatime /dev/sdX1 /mnt/usb
+sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g),big_writes,noatime /dev/sdX1 /mnt/usb
+
+# OR mount exFAT drive
+sudo mount -t exfat -o uid=$(id -u),gid=$(id -g) /dev/sdX1 /mnt/usb
+
+# OR auto-detect filesystem (recommended)
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdX1 /mnt/usb
 
 # Verify mount
 df -h | grep /mnt/usb
+```
+
+**💡 Tip: Use the mount helper script** (auto-detects filesystem):
+```bash
+# Make it executable (first time only)
+chmod +x mount-usb.sh
+
+# Mount any drive automatically
+./mount-usb.sh /dev/sdb1
+
+# Or specify custom mount point
+./mount-usb.sh /dev/sdb1 /mnt/backup
 ```
 
 ### 2. Clone This Repository

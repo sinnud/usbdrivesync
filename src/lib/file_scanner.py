@@ -8,7 +8,7 @@ import os
 from typing import List, Tuple, Optional
 
 
-# NTFS/Windows system folders and files to exclude
+# NTFS/exFAT/Windows system folders and files to exclude
 SYSTEM_EXCLUDES = [
     'System Volume Information',
     '$RECYCLE.BIN',
@@ -19,6 +19,9 @@ SYSTEM_EXCLUDES = [
     'hiberfil.sys',
     'pagefile.sys',
     'swapfile.sys',
+    '.Trashes',  # macOS trash on exFAT
+    '.fseventsd',  # macOS file system events
+    '.Spotlight-V100',  # macOS Spotlight
 ]
 
 

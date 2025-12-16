@@ -24,12 +24,12 @@ DB_FILE = 'usb_backup.db'
 
 
 def scan_available_drives():
-    """Scan and display available NTFS drives"""
-    print("\n🔍 Scanning for NTFS drives...")
+    """Scan and display available NTFS/exFAT drives"""
+    print("\n🔍 Scanning for NTFS/exFAT drives...")
     drives = get_ntfs_drives()
     
     if not drives:
-        print("❌ No mounted NTFS drives found")
+        print("❌ No mounted NTFS/exFAT drives found")
         
         # Check if any USB storage devices are connected
         usb_devices = get_usb_storage_devices()
@@ -79,7 +79,7 @@ def scan_available_drives():
         
         return []
     
-    print(f"\n✅ Found {len(drives)} NTFS drive(s):\n")
+    print(f"\n✅ Found {len(drives)} NTFS/exFAT drive(s):\n")
     
     for i, drive in enumerate(drives, 1):
         print(f"{i}. Device: /dev/{drive['name']}")
@@ -127,7 +127,7 @@ def interactive_setup():
     drives = scan_available_drives()
     
     if len(drives) < 1:
-        print("❌ Need at least 1 NTFS drive to continue")
+        print("❌ Need at least 1 NTFS/exFAT drive to continue")
         return False
     
     print("\nWe need to identify your MASTER and BACKUP drives.")

@@ -2,7 +2,7 @@
 
 ## Project Complete! ✅
 
-A comprehensive USB drive backup synchronization tool has been created for managing dual NTFS USB drives on Debian Linux with master-backup versioning.
+A comprehensive USB drive backup synchronization tool has been created for managing dual USB drives (NTFS/exFAT) on Debian Linux with master-backup versioning.
 
 ---
 

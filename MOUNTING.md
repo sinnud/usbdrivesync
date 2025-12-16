@@ -6,12 +6,27 @@
 
 ## Correct Mount Command
 
+**For NTFS drives:**
 ```bash
 sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 ```
 
+**For exFAT drives:**
+```bash
+sudo mount -t exfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+```
+
+**Auto-detect filesystem:**
+```bash
+# Check filesystem type first
+lsblk -f | grep sdb1
+
+# Or let mount auto-detect (works for both):
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+```
+
 ### What this does:
-- `-t ntfs-3g`: Use NTFS driver
+- `-t ntfs-3g` or `-t exfat`: Specify filesystem driver
 - `-o uid=$(id -u)`: Set your user as the owner
 - `-o gid=$(id -g)`: Set your group as the owner
 - `/dev/sdb1`: The USB drive partition
@@ -58,11 +73,22 @@ You only need to do this once.
 
 ### 3. Mount with Permissions
 
+**For NTFS:**
 ```bash
 sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 ```
 
-**For FAT32 drives** (like your test drive):
+**For exFAT:**
+```bash
+sudo mount -t exfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+```
+
+**Auto-detect (recommended):**
+```bash
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+```
+
+**For FAT32 drives** (like test drives):
 ```bash
 sudo mount -t vfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 ```
@@ -150,6 +176,12 @@ UUID=2DB2-F9FE /mnt/usb ntfs-3g uid=1000,gid=1000,dmask=022,fmask=133 0 0
 ```bash
 # Mount NTFS with permissions
 sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+
+# Mount exFAT with permissions
+sudo mount -t exfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+
+# Mount auto-detect (works for NTFS, exFAT, FAT32)
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
 # Mount FAT32 with permissions
 sudo mount -t vfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb

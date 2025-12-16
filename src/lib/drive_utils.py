@@ -306,7 +306,7 @@ def get_usb_storage_devices() -> List[Dict]:
 
 
 def get_ntfs_drives() -> List[Dict]:
-    """Get list of NTFS formatted USB/removable drives (excludes internal drives)"""
+    """Get list of NTFS/exFAT formatted USB/removable drives (excludes internal drives)"""
     devices = get_block_devices()
     ntfs_drives = []
     
@@ -335,13 +335,15 @@ def get_ntfs_drives() -> List[Dict]:
             # Use parent device info if this is a partition
             check_dev = parent_dev if parent_dev else dev
             
-            if dev.get('fstype') == 'ntfs' and is_usb_or_removable(check_dev):
+            fstype = dev.get('fstype', '').lower()
+            if fstype in ['ntfs', 'exfat'] and is_usb_or_removable(check_dev):
                 ntfs_drives.append({
                     'name': full_name,
                     'size': dev.get('size', ''),
                     'uuid': dev.get('uuid', ''),
                     'label': dev.get('label', ''),
-                    'mountpoint': dev.get('mountpoint', '')
+                    'mountpoint': dev.get('mountpoint', ''),
+                    'fstype': fstype
                 })
             
             # Check children (partitions inherit parent device properties)

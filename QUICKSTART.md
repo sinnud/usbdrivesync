@@ -7,11 +7,20 @@ This guide gets you up and running quickly.
 **Always mount drives with user permissions** to avoid "Permission denied" errors when copying files:
 
 ```bash
-# CORRECT way to mount (includes uid/gid):
+# Check filesystem type first:
+lsblk -f | grep sdb1
+
+# For NTFS:
 sudo mount -t ntfs-3g -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
 
+# For exFAT:
+sudo mount -t exfat -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+
+# Auto-detect (recommended - works for NTFS, exFAT, FAT32):
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/usb
+
 # WRONG way (will cause permission errors):
-sudo mount -t ntfs-3g /dev/sdb1 /mnt/usb  # ❌ Don't use this!
+sudo mount /dev/sdb1 /mnt/usb  # ❌ Don't use this!
 ```
 
 The `-o uid=$(id -u),gid=$(id -g)` options ensure your user owns the files and can write to the drive.
@@ -23,7 +32,7 @@ The `-o uid=$(id -u),gid=$(id -g)` options ensure your user owns the files and c
 ```bash
 # On Debian laptop
 sudo apt-get update
-sudo apt-get install -y ntfs-3g rsync python3
+sudo apt-get install -y ntfs-3g exfat-fuse exfat-utils rsync python3
 
 # Verify installations
 which find rsync python3
