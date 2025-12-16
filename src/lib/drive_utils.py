@@ -335,7 +335,7 @@ def get_ntfs_drives() -> List[Dict]:
             # Use parent device info if this is a partition
             check_dev = parent_dev if parent_dev else dev
             
-            fstype = dev.get('fstype', '').lower()
+            fstype = (dev.get('fstype') or '').lower()
             if fstype in ['ntfs', 'exfat'] and is_usb_or_removable(check_dev):
                 ntfs_drives.append({
                     'name': full_name,
