@@ -48,7 +48,7 @@ usbdrivesync/
 - [x] **SQLite metadata storage** with full history
 - [x] **Master-backup versioning** strategy
 - [x] **Delta sync** via rsync (only changed files)
-- [x] **Laptop staging** for space-efficient sync
+- [x] **Multiple sync modes**: Laptop staging or direct USB 3.0 drive-to-drive
 - [x] **File versioning** with timestamps
 - [x] **Integrity verification** tool
 

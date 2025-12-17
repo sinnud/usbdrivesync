@@ -270,16 +270,138 @@ def apply_staged(mount_point: str, plan_path: str = None, dry_run: bool = False)
     print("\n   Optionally run: python3 src/verify.py --role backup")
 
 
+def direct_sync(master_mount: str, backup_mount: str, plan_path: str = None, 
+                dry_run: bool = False):
+    """
+    Sync directly from master to backup drive (USB 3.0 direct).
+    No staging needed - generates rsync commands for direct drive-to-drive sync.
+    """
+    print("=" * 60)
+    print("Direct Sync - Master to Backup (USB 3.0)")
+    print("=" * 60)
+    
+    # Load config and plan
+    config = load_config()
+    plan = load_sync_plan(plan_path)
+    
+    print(f"📋 Sync plan: {plan_path}")
+    print(f"📊 Total changes: {plan['summary']['total_changes']:,}")
+    print(f"📏 Total size: {format_size(plan['total_size_bytes'])}")
+    
+    if dry_run:
+        print("🔍 DRY RUN - Commands will be shown but not executed")
+    
+    # Verify drives are mounted
+    if not os.path.exists(master_mount):
+        print(f"❌ Master mount point does not exist: {master_mount}")
+        sys.exit(1)
+    if not os.path.exists(backup_mount):
+        print(f"❌ Backup mount point does not exist: {backup_mount}")
+        sys.exit(1)
+    
+    # Get source path mapping (handle subfolder structure)
+    master_base = master_mount.rstrip('/')
+    backup_base = backup_mount.rstrip('/')
+    
+    # Handle source subfolder if specified in config
+    source_subfolder = config.get('master', {}).get('source_subfolder', '')
+    if source_subfolder:
+        master_source = os.path.join(master_base, source_subfolder.lstrip('/'))
+        print(f"📁 Source subfolder: {source_subfolder}")
+    else:
+        master_source = master_base
+    
+    print(f"🔄 Syncing: {master_source} → {backup_base}")
+    
+    # Process each change
+    total_processed = 0
+    total_size = 0
+    
+    for change in plan['changes']:
+        change_type = change['type']
+        filepath = change['path']
+        
+        if change_type == 'new':
+            # Copy new file
+            source_path = os.path.join(master_source, filepath)
+            dest_path = os.path.join(backup_base, filepath)
+            
+            if dry_run:
+                print(f"📄 NEW: {filepath}")
+            else:
+                # Ensure destination directory exists
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                shutil.copy2(source_path, dest_path)
+                print(f"✅ Copied: {filepath}")
+                
+        elif change_type == 'modified':
+            # Version existing file, then copy new one
+            dest_path = os.path.join(backup_base, filepath)
+            
+            if os.path.exists(dest_path):
+                # Create versioned backup
+                versioned_path = version_file(dest_path)
+                if versioned_path:
+                    print(f"📅 Versioned: {filepath} → {os.path.basename(versioned_path)}")
+            
+            # Copy new version
+            source_path = os.path.join(master_source, filepath)
+            
+            if dry_run:
+                print(f"📝 MODIFIED: {filepath}")
+            else:
+                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                shutil.copy2(source_path, dest_path)
+                print(f"✅ Updated: {filepath}")
+                
+        elif change_type == 'deleted':
+            # For direct sync, we might want to delete or just skip
+            # (depending on user's preference)
+            if config.get('settings', {}).get('sync_deletions', False):
+                dest_path = os.path.join(backup_base, filepath)
+                if os.path.exists(dest_path):
+                    if dry_run:
+                        print(f"🗑️  DELETE: {filepath}")
+                    else:
+                        os.remove(dest_path)
+                        print(f"✅ Deleted: {filepath}")
+            else:
+                print(f"⏭️  SKIP DELETE: {filepath} (deletions disabled)")
+        
+        total_processed += 1
+        if 'size' in change:
+            total_size += change['size']
+    
+    print("\n" + "=" * 60)
+    print("Direct Sync Complete")
+    print("=" * 60)
+    print(f"📊 Files processed: {total_processed:,}")
+    print(f"📏 Data transferred: {format_size(total_size)}")
+    
+    if dry_run:
+        print("🔍 This was a dry run - no changes made")
+    else:
+        print("✅ Direct sync completed successfully")
+    
+    print("\n   Optionally run: python3 src/verify.py --role backup")
+
+
 def main():
     parser = argparse.ArgumentParser(
-        description='Sync executor - stage deltas and apply to backup'
+        description='Sync executor - stage deltas, apply staged, or direct sync'
     )
     parser.add_argument('--stage-deltas', action='store_true',
                        help='Stage delta files from master to laptop')
     parser.add_argument('--apply-staged', action='store_true',
                        help='Apply staged changes to backup drive')
+    parser.add_argument('--direct-sync', action='store_true',
+                       help='Direct sync from master to backup (USB 3.0 only)')
+    parser.add_argument('--master-drive', 
+                       help='Master drive mount point (required for direct-sync)')
+    parser.add_argument('--backup-drive',
+                       help='Backup drive mount point (required for direct-sync)')
     parser.add_argument('--drive', 
-                       help='Mount point of the drive (required for both operations)')
+                       help='Mount point of the drive (required for stage/apply operations)')
     parser.add_argument('--plan',
                        help='Path to sync plan (default: plans/sync_plan_latest.json)')
     parser.add_argument('--dry-run', action='store_true',
@@ -287,19 +409,26 @@ def main():
     
     args = parser.parse_args()
     
-    if not args.stage_deltas and not args.apply_staged:
+    if args.direct_sync:
+        if not args.master_drive or not args.backup_drive:
+            print("❌ --master-drive and --backup-drive required for direct-sync")
+            parser.print_help()
+            sys.exit(1)
+        direct_sync(args.master_drive, args.backup_drive, args.plan, args.dry_run)
+        
+    elif args.stage_deltas or args.apply_staged:
+        if not args.drive:
+            print("❌ --drive argument required")
+            parser.print_help()
+            sys.exit(1)
+        
+        if args.stage_deltas:
+            stage_deltas(args.drive, args.plan, args.dry_run)
+        elif args.apply_staged:
+            apply_staged(args.drive, args.plan, args.dry_run)
+    else:
         parser.print_help()
         sys.exit(1)
-    
-    if not args.drive:
-        print("❌ --drive argument required")
-        parser.print_help()
-        sys.exit(1)
-    
-    if args.stage_deltas:
-        stage_deltas(args.drive, args.plan, args.dry_run)
-    elif args.apply_staged:
-        apply_staged(args.drive, args.plan, args.dry_run)
 
 
 if __name__ == '__main__':

@@ -7,8 +7,10 @@ A Python-based tool for managing synchronized backups between two USB drives (2-
 - **Master-Backup Model**: Master drive has latest versions, backup keeps version history
 - **Efficient Scanning**: Uses Linux `find` command for fast metadata collection
 - **Smart Syncing**: Only transfers changed files (delta sync) via `rsync`
+- **Multiple Sync Modes**: Traditional staging mode or direct USB 3.0 drive-to-drive sync
 - **Versioning**: Modified files on backup are renamed with timestamp before update
 - **Safety Checks**: Drive UUID verification and USB 3.0 speed detection
+- **Filesystem Support**: NTFS and exFAT drives with automatic detection
 - **SQLite Tracking**: Complete metadata and sync history database
 
 ## Architecture

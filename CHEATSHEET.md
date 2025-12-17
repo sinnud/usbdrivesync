@@ -158,6 +158,15 @@ python3 src/sync.py --apply-staged --drive /mnt/usb
 python3 src/sync.py --apply-staged --drive /mnt/usb --dry-run
 ```
 
+### Direct Sync (USB 3.0 Direct)
+```bash
+# Direct sync from master to backup (no staging needed)
+python3 src/sync.py --direct-sync --master-drive /mnt/master --backup-drive /mnt/backup
+
+# Dry run
+python3 src/sync.py --direct-sync --master-drive /mnt/master --backup-drive /mnt/backup --dry-run
+```
+
 ---
 
 ## Reporting
@@ -416,6 +425,7 @@ python3 src/scan.py --drive $USB_MOUNT_POINT --role master
 | Compare | `python3 src/compare.py` |
 | Stage | `python3 src/sync.py --stage-deltas --drive /mnt/usb` |
 | Apply | `python3 src/sync.py --apply-staged --drive /mnt/usb` |
+| Direct Sync | `python3 src/sync.py --direct-sync --master-drive /mnt/master --backup-drive /mnt/backup` |
 | Status | `python3 src/report.py --summary` |
 | Verify | `python3 src/verify.py --role backup --drive /mnt/usb` |
 | Identify | `python3 src/identify.py /mnt/usb` |

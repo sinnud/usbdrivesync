@@ -135,6 +135,54 @@ sudo umount /mnt/usb
 
 ---
 
+## Direct Sync (USB 3.0 Only)
+
+If you have USB 3.0 ports and want to sync directly between drives without staging on your laptop:
+
+### Prerequisites
+- Both drives must be connected simultaneously
+- USB 3.0 ports required (blue ports)
+- Master drive must have `source_subfolder` configured in `config.json`
+
+### Step 1: Mount Both Drives
+
+```bash
+# Mount master drive
+sudo mkdir -p /mnt/master
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdb1 /mnt/master
+
+# Mount backup drive  
+sudo mkdir -p /mnt/backup
+sudo mount -o uid=$(id -u),gid=$(id -g) /dev/sdc1 /mnt/backup
+```
+
+### Step 2: Compare
+
+```bash
+# Generate sync plan
+python3 src/compare.py
+```
+
+### Step 3: Direct Sync
+
+```bash
+# Sync directly between drives (no staging)
+python3 src/sync.py --direct-sync --master-drive /mnt/master --backup-drive /mnt/backup
+
+# Or preview first
+python3 src/sync.py --direct-sync --master-drive /mnt/master --backup-drive /mnt/backup --dry-run
+```
+
+### Step 4: Unmount
+
+```bash
+sudo umount /mnt/master /mnt/backup
+```
+
+✅ **Direct sync complete!** (Faster, no laptop storage used)
+
+---
+
 ## Quick Commands Reference
 
 ### Check which drive is connected
