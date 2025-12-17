@@ -84,6 +84,7 @@ def scan_drive_command(mount_point: str, role: str):
         print("\n⚡ Checking USB connection speed...")
         min_speed = config.get('settings', {}).get('min_usb_speed_mbps', 5000)
         allow_override = config.get('settings', {}).get('allow_usb2_override', True)
+        print(f"   Debug: min_speed={min_speed}, allow_override={allow_override}")
         
         if not verify_usb_speed(device_name, min_speed, allow_override):
             sys.exit(1)
